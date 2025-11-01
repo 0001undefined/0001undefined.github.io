@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>現在の時刻</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* Interフォントを適用 */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* スライダーのつまみをカスタマイズ (オプション) */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #3b82f6; /* Tailwind blue-500 */
+            border-radius: 50%;
+            cursor: pointer;
+            margin-top: -7px; /* トラックの中央に配置するため */
+        }
+        input[type=range]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="h-screen flex items-center justify-center bg-gray-100 text-gray-800 p-4 overflow-hidden">
+
+    <!-- 時計を表示するコンテナ -->
+    <!-- Tailwindのレスポンシブクラスを削除し、style属性で初期サイズを指定 -->
+    <div id="clock" class="font-bold tracking-wider" style="font-size: 96px; line-height: 1;">
+        <!-- JavaScriptによって時刻がここに挿入されます -->
+        00:00:00
+    </div>
+
+    <!-- サイズ調整スライダー -->
+    <div class="absolute bottom-8 left-0 right-0 w-full max-w-xs mx-auto px-4">
+        <label for="size-slider" class="sr-only">文字サイズ</label>
+        <!-- min/max/valueを調整してサイズ範囲と初期値を設定 -->
+        <input id="size-slider" type="range" min="32" max="256" value="96" class="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer">
+        <div class="flex justify-between text-xs text-gray-500 mt-1.5">
+            <span>小</span>
+            <span>大</span>
+        </div>
+    </div>
+
+    <script>
+        // 時計を更新する関数
+        function updateClock() {
+            // ... (既存の updateClock 関数 ...
+            // 現在の時刻を取得
+            const now = new Date();
+
+            // 日本時間(JST)で時刻をフォーマット (HH:MM:SS)
+            // 'ja-JP'ロケールを指定し、timeZoneを'Asia/Tokyo'に設定
+            const options = {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false, // 24時間表記
+                timeZone: 'Asia/Tokyo'
+            };
+            
+            let timeString;
+            try {
+                 timeString = new Intl.DateTimeFormat('ja-JP', options).format(now);
+            } catch (e) {
+                // フォールバック（ローカルタイムゾーン）
+                console.error("Intl.DateTimeFormat failed, falling back to local time.", e);
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                timeString = `${hours}:${minutes}:${seconds}`;
+            }
+
+            // HTML要素に時刻を表示
+            const clockElement = document.getElementById('clock');
+            if (clockElement) {
+                clockElement.textContent = timeString;
+            }
+        }
+
+        // 1秒ごと(1000ミリ秒)にupdateClock関数を実行
+        setInterval(updateClock, 1000);
+
+        // ページ読み込み時にすぐに時計を表示するために関数を実行
+        updateClock();
+
+        // --- (ここから追加) サイズ調整スライダーの機能 ---
+        const slider = document.getElementById('size-slider');
+        const clockElement = document.getElementById('clock');
+
+        /**
+         * 時計のフォントサイズを設定する関数
+         * @param {string} size - ピクセル単位のフォントサイズ
+         */
+        function setClockSize(size) {
+            if (clockElement) {
+                // スライダーの値をピクセル単位でフォントサイズに適用
+                clockElement.style.fontSize = `${size}px`;
+            }
+        }
+
+        // スライダーが操作された時(inputイベントでリアルタイムに反応)
+        if (slider) {
+            slider.addEventListener('input', (event) => {
+                setClockSize(event.target.value);
+            });
+
+            // ページ読み込み時にスライダーの初期値でサイズを設定
+            setClockSize(slider.value);
+        }
+        // --- (ここまで追加) ---
+    </script>
+
+</body>
+</html>
+
